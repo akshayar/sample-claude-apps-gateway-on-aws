@@ -7,7 +7,7 @@ import * as customResources from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 
 export interface DatabaseStackProps extends cdk.StackProps {
-  readonly vpc: ec2.Vpc;
+  readonly vpc: ec2.IVpc;
   readonly databaseSecurityGroup: ec2.SecurityGroup;
 }
 
@@ -46,7 +46,7 @@ export class DatabaseStack extends cdk.Stack {
 
     this.cluster = new rds.DatabaseCluster(this, 'GatewayDatabase', {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_16_6,
+        version: rds.AuroraPostgresEngineVersion.VER_16_8,
       }),
       vpc: props.vpc,
       subnetGroup,

@@ -11,7 +11,7 @@ import * as path from 'path';
 import { GatewaySecrets } from './secrets-stack';
 
 export interface GatewayStackProps extends cdk.StackProps {
-  readonly vpc: ec2.Vpc;
+  readonly vpc: ec2.IVpc;
   readonly gatewayTaskSecurityGroup: ec2.SecurityGroup;
   readonly privateSubnets: ec2.ISubnet[];
   readonly oidcIssuer: string;
@@ -76,6 +76,7 @@ export class GatewayStack extends cdk.Stack {
       sid: 'BedrockInvokeClaudeModels',
       actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
       resources: [
+        `arn:${cdk.Aws.PARTITION}:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:inference-profile/global.anthropic.*`,
         `arn:${cdk.Aws.PARTITION}:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:inference-profile/us.anthropic.*`,
         `arn:${cdk.Aws.PARTITION}:bedrock:*::foundation-model/anthropic.*`,
       ],
@@ -171,7 +172,7 @@ export class GatewayStack extends cdk.Stack {
           // via the admin console's "Available models" page after deploy --
           // no image rebuild required; see gateway/entrypoint.sh and
           // docs/04-admin-console-guide.md for how this works.
-          { name: 'AVAILABLE_MODELS_RAW', value: '[claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5]' },
+          { name: 'AVAILABLE_MODELS_RAW', value: '[claude-opus-4-8, claude-sonnet-4-6, claude-sonnet-5, claude-haiku-4-5]' },
         ],
         secrets: [
           { name: 'OIDC_CLIENT_SECRET', valueFrom: props.secrets.oidcClientSecret.secretArn },

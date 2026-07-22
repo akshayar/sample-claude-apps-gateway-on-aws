@@ -11,7 +11,7 @@ import { Construct } from 'constructs';
 import * as path from 'path';
 
 export interface AdminConsoleStackProps extends cdk.StackProps {
-  readonly vpc: ec2.Vpc;
+  readonly vpc: ec2.IVpc;
   readonly adminConsoleSecurityGroup: ec2.SecurityGroup;
   readonly publicSubnets: ec2.ISubnet[];
   readonly gatewayServiceArn: string;
@@ -23,6 +23,7 @@ export interface AdminConsoleStackProps extends cdk.StackProps {
   // Built by BuildMachineStack on a real Linux x86_64 EC2 instance -- see
   // build-machine-stack.ts and gateway-stack.ts's gatewayImageUri comment.
   readonly adminConsoleImageUri: string;
+  readonly adminOktaGroupName: string;
 }
 
 /**
@@ -175,6 +176,7 @@ export class AdminConsoleStack extends cdk.Stack {
           { name: 'GATEWAY_BASE_URL', value: `https://${props.gatewayEndpoint}` },
           { name: 'GATEWAY_SERVICE_ARN', value: props.gatewayServiceArn },
           { name: 'AWS_REGION', value: cdk.Aws.REGION },
+          { name: 'ADMIN_GROUP_NAME', value: props.adminOktaGroupName },
         ],
         secrets: [
           { name: 'SESSION_SECRET_KEY', valueFrom: props.sessionSecret.secretArn },

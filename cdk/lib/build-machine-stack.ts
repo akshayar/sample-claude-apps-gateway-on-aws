@@ -9,7 +9,7 @@ import { Construct } from 'constructs';
 import * as path from 'path';
 
 export interface BuildMachineStackProps extends cdk.StackProps {
-  readonly vpc: ec2.Vpc;
+  readonly vpc: ec2.IVpc;
 }
 
 /**
@@ -104,7 +104,7 @@ export class BuildMachineStack extends cdk.Stack {
 
     const buildInstance = new ec2.Instance(this, 'BuildMachine', {
       vpc: props.vpc,
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.SMALL),
       machineImage,
       role: buildRole,

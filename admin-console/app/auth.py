@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -23,7 +24,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 
-ADMIN_GROUP_NAME = "claude-gateway-admins"
+ADMIN_GROUP_NAME = os.environ.get("ADMIN_GROUP_NAME", "claude-gateway-admins")
 
 # Session dict key name, not a credential -- Bandit's B105 heuristic flags
 # any string literal assigned to a "*token*"-named variable regardless of

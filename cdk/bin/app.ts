@@ -7,7 +7,6 @@ import { SecretsStack } from '../lib/secrets-stack';
 import { BuildMachineStack } from '../lib/build-machine-stack';
 import { GatewayStack } from '../lib/gateway-stack';
 import { AdminConsoleStack } from '../lib/admin-console-stack';
-import { VpnStack } from '../lib/vpn-stack';
 
 const app = new cdk.App();
 
@@ -62,7 +61,13 @@ if (!oidcClientSecretRaw) {
 }
 const oidcClientSecretValue = cdk.SecretValue.unsafePlainText(oidcClientSecretRaw);
 
-const network = new NetworkStack(app, 'ClaudeGatewayNetworkStack', { env });
+const network = new NetworkStack(app, 'ClaudeGatewayNetworkStack', {
+  env,
+  vpcId: app.node.tryGetContext('vpcId') ?? 'vpc-CHANGEME',
+  privateSubnetIds: (app.node.tryGetContext('privateSubnetIds') ?? 'subnet-CHANGEME1,subnet-CHANGEME2').split(','),
+  privateSubnetAzs: (app.node.tryGetContext('privateSubnetAzs') ?? 'ap-south-1a,ap-south-1b').split(','),
+  vpcCidr: app.node.tryGetContext('vpcCidr') ?? '10.0.0.0/16',
+});
 
 const database = new DatabaseStack(app, 'ClaudeGatewayDatabaseStack', {
   env,
@@ -112,16 +117,14 @@ new AdminConsoleStack(app, 'ClaudeGatewayAdminConsoleStack', {
   gatewayTaskDefinitionFamily: gateway.taskDefinitionFamily,
   sessionSecret: secrets.consoleSessionSecret,
   adminConsoleImageUri: buildMachine.adminConsoleImageUri,
+  adminOktaGroupName,
 });
 
-// A self-contained AWS Client VPN endpoint (mutual TLS), so a stranger
-// deploying this repo has an actual way to reach the gateway's private
-// endpoint with no manual AWS console steps beyond the Okta setup this
-// repo already requires -- see vpn-stack.ts for the full rationale and
-// docs/02-deploy.md for how to download and import the generated .ovpn
-// profile into AWS's OpenVPN client.
-new VpnStack(app, 'ClaudeGatewayVpnStack', {
-  env,
-  vpc: network.vpc,
-  privateSubnets: network.privateSubnets,
-});
+// VPN stack removed — customer manages their own VPN connectivity.
+// To re-enable: uncomment the VpnStack import and instantiation below.
+// import { VpnStack } from '../lib/vpn-stack';
+// new VpnStack(app, 'ClaudeGatewayVpnStack', {
+//   env,
+//   vpc: network.vpc,
+//   privateSubnets: network.privateSubnets,
+// });

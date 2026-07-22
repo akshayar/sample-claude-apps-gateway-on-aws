@@ -20,16 +20,6 @@ oidc:
   # email and groups; userinfo_fallback fetches them from /userinfo instead.
   # Harmless to leave on for IdPs that don't need it.
   userinfo_fallback: true
-  # Okta only emits the groups claim when the app's own "Group claim type"
-  # is configured under Sign On -> OpenID Connect ID Token (see
-  # docs/01-prerequisites.md), AND -- confirmed the hard way against Okta's
-  # org-wide default authorization server -- the groups scope is still
-  # requested here even though that server doesn't formally advertise
-  # "groups" in its own discovery document's scopes_supported. Without
-  # requesting it, the app-level claim filter is configured but the
-  # resulting token/userinfo response omits groups entirely, and the
-  # gateway correctly reports "signed in, but not a member of the admin
-  # group" for every user regardless of their real membership.
   scopes: [openid, profile, email, offline_access, groups]
   # allowed_email_domains: [example.com]   # uncomment and restrict for production
 
@@ -45,7 +35,25 @@ upstreams:
     region: ${AWS_REGION}
     auth: {}   # empty: picks up the ECS task role via the AWS SDK default credential chain
 
-auto_include_builtin_models: true
+auto_include_builtin_models: false
+
+models:
+  - id: claude-opus-4-8
+    label: Claude Opus 4.8
+    upstream_model:
+      bedrock: global.anthropic.claude-opus-4-8
+  - id: claude-sonnet-4-6
+    label: Claude Sonnet 4.6
+    upstream_model:
+      bedrock: global.anthropic.claude-sonnet-4-6
+  - id: claude-haiku-4-5
+    label: Claude Haiku 4.5
+    upstream_model:
+      bedrock: global.anthropic.claude-haiku-4-5-20251001-v1:0
+  - id: claude-sonnet-5
+    label: Claude Sonnet 5
+    upstream_model:
+      bedrock: global.anthropic.claude-sonnet-5
 
 # Optional: route specific models through a specific Bedrock inference
 # profile ARN -- most commonly an application inference profile you created
