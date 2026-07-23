@@ -7,7 +7,7 @@ signing key) are expected to be injected by the platform (e.g. ECS Express
 Mode `secrets`, backed by AWS Secrets Manager) rather than baked into the
 image.
 
-Auth model: this console does NOT run its own OIDC client against Okta.
+Auth model: this console does NOT run its own OIDC client against the IdP.
 The gateway's own OAuth token endpoint only supports the device-code grant
 and refresh tokens (confirmed via GET /.well-known/oauth-authorization-server:
 grant_types_supported = ["urn:ietf:params:oauth:grant-type:device_code",

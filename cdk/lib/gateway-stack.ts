@@ -16,7 +16,7 @@ export interface GatewayStackProps extends cdk.StackProps {
   readonly privateSubnets: ec2.ISubnet[];
   readonly oidcIssuer: string;
   readonly oidcClientId: string;
-  readonly adminOktaGroupName: string;
+  readonly adminGroupName: string;
   readonly secrets: GatewaySecrets;
   // Built by BuildMachineStack on a real Linux x86_64 EC2 instance, not
   // locally via DockerImageAsset -- see build-machine-stack.ts for why
@@ -132,7 +132,7 @@ export class GatewayStack extends cdk.Stack {
     // one value drives both the service name and every IAM policy below
     // that needs to reference the resulting task-definition family --
     // no second hardcoded literal to keep in sync.
-    const serviceName = `${cdk.Stack.of(this).stackName.toLowerCase()}-gateway`;
+    const serviceName = `${cdk.Stack.of(this).stackName.toLowerCase()}-gw`;
     this.taskDefinitionFamily = `default-${serviceName}`;
 
     const service = new ecs.CfnExpressGatewayService(this, 'GatewayService', {
@@ -166,7 +166,7 @@ export class GatewayStack extends cdk.Stack {
           { name: 'GATEWAY_PUBLIC_URL', value: 'https://placeholder.invalid' },
           { name: 'OIDC_ISSUER', value: props.oidcIssuer },
           { name: 'OIDC_CLIENT_ID', value: props.oidcClientId },
-          { name: 'ADMIN_OKTA_GROUP_NAME', value: props.adminOktaGroupName },
+          { name: 'ADMIN_GROUP_NAME', value: props.adminGroupName },
           { name: 'AWS_REGION', value: cdk.Aws.REGION },
           // All three catalog models enabled by default. Change this list
           // via the admin console's "Available models" page after deploy --
@@ -271,8 +271,8 @@ export class GatewayStack extends cdk.Stack {
 
     // Also expose OIDC issuer/client ID and the admin group name as stack
     // outputs purely for operator convenience when cross-checking against
-    // the Okta app registration -- these aren't secrets.
+    // the IdP app registration -- these aren't secrets.
     new cdk.CfnOutput(this, 'OidcIssuer', { value: props.oidcIssuer });
-    new cdk.CfnOutput(this, 'AdminOktaGroupName', { value: props.adminOktaGroupName });
+    new cdk.CfnOutput(this, 'AdminGroupName', { value: props.adminGroupName });
   }
 }

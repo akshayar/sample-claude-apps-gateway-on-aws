@@ -8,23 +8,27 @@ listen:
   public_url: ${GATEWAY_PUBLIC_URL}
 
 oidc:
-  # Replace with your own Okta (or other OIDC-compliant IdP) issuer and
-  # OAuth client ID. See docs/01-prerequisites.md for exact setup steps,
-  # including two gotchas that aren't obvious from Okta's UI alone.
+  # Google Workspace OIDC. The issuer is always https://accounts.google.com
+  # for all Google Workspace tenants. See docs/01-prerequisites.md for the
+  # Google Cloud Console OAuth client setup.
   issuer: ${OIDC_ISSUER}
   client_id: ${OIDC_CLIENT_ID}
   client_secret: ${OIDC_CLIENT_SECRET}
-  # Required if your IdP's issuer is an Okta ORG authorization server (the
-  # default on Okta's free/Integrator plans, which have no custom
-  # authorization server). The org server returns a thin id_token that omits
-  # email and groups; userinfo_fallback fetches them from /userinfo instead.
-  # Harmless to leave on for IdPs that don't need it.
+  # Google's id_token is sparse (no groups claim). userinfo_fallback fetches
+  # email and profile from /userinfo. For group-based policies, the gateway's
+  # built-in google_groups feature queries the Directory API — see
+  # docs/01-prerequisites.md for setup.
   userinfo_fallback: true
-  scopes: [openid, profile, email, offline_access, groups]
+  # Google rejects 'offline_access' and 'groups' as scopes. Refresh tokens
+  # come from extra_auth_params below instead.
+  scopes: [openid, profile, email]
+  extra_auth_params: { access_type: offline, prompt: consent }
   # allowed_email_domains: [example.com]   # uncomment and restrict for production
 
 session:
   jwt_secret: ${GATEWAY_JWT_SECRET}
+  # 8 hours matches a workday. Google issues refresh tokens via
+  # extra_auth_params above, so the CLI renews silently.
   ttl_hours: 8
 
 store:

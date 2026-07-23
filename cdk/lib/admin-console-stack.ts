@@ -23,14 +23,14 @@ export interface AdminConsoleStackProps extends cdk.StackProps {
   // Built by BuildMachineStack on a real Linux x86_64 EC2 instance -- see
   // build-machine-stack.ts and gateway-stack.ts's gatewayImageUri comment.
   readonly adminConsoleImageUri: string;
-  readonly adminOktaGroupName: string;
+  readonly adminGroupName: string;
 }
 
 /**
  * The admin console: spend-limit management and model-access management,
  * deployed as its own ECS Express Mode service, deliberately on PUBLIC
  * subnets -- unlike the gateway itself, which is private. This is a
- * conscious choice, not an oversight: the console is gated by Okta group
+ * conscious choice, not an oversight: the console is gated by IdP group
  * membership (checked by the gateway itself on every admin API call, via
  * `admin.admin_groups` in gateway.yaml), not by network placement, and
  * being publicly reachable means an admin doesn't need VPN/private-network
@@ -176,7 +176,7 @@ export class AdminConsoleStack extends cdk.Stack {
           { name: 'GATEWAY_BASE_URL', value: `https://${props.gatewayEndpoint}` },
           { name: 'GATEWAY_SERVICE_ARN', value: props.gatewayServiceArn },
           { name: 'AWS_REGION', value: cdk.Aws.REGION },
-          { name: 'ADMIN_GROUP_NAME', value: props.adminOktaGroupName },
+          { name: 'ADMIN_GROUP_NAME', value: props.adminGroupName },
         ],
         secrets: [
           { name: 'SESSION_SECRET_KEY', valueFrom: props.sessionSecret.secretArn },
@@ -244,7 +244,7 @@ export class AdminConsoleStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'AdminConsoleEndpoint', {
       value: `https://${service.attrEndpoint}`,
-      description: 'The admin console URL. Publicly reachable; access is gated by Okta group membership, not network placement.',
+      description: 'The admin console URL. Publicly reachable; access is gated by IdP group membership, not network placement.',
     });
   }
 }

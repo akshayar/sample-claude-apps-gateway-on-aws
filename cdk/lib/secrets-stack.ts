@@ -4,14 +4,13 @@ import { Construct } from 'constructs';
 
 export interface SecretsStackProps extends cdk.StackProps {
   readonly postgresUrl: secretsmanager.Secret;
-  // The real value from your Okta app registration (docs/01-prerequisites.md).
-  // Passed as a SecretValue, not a plain string, so it never appears in
-  // logs or CDK's own diagnostic output. Sourced from CDK context
-  // (-c oidcClientSecret=...) in bin/app.ts, the same input channel as
-  // oidcIssuer and oidcClientId -- this is a PoC/reference deployment;
-  // production use should weigh sourcing this from an existing
-  // out-of-band secret instead, since context values are written to
-  // cdk.context.json on disk.
+  // The real value from your OIDC provider's OAuth client registration
+  // (docs/01-prerequisites.md). Passed as a SecretValue, not a plain string,
+  // so it never appears in logs or CDK's own diagnostic output. Sourced from
+  // CDK context (-c oidcClientSecret=...) in bin/app.ts, the same input
+  // channel as oidcClientId -- this is a PoC/reference deployment; production
+  // use should weigh sourcing this from an existing out-of-band secret
+  // instead, since context values are written to cdk.context.json on disk.
   readonly oidcClientSecretValue: cdk.SecretValue;
 }
 
@@ -28,7 +27,7 @@ export interface GatewaySecrets {
  * derived from the Aurora cluster).
  *
  * The OIDC client secret is the one secret here that ISN'T generated --
- * it's external configuration from your Okta app registration, supplied
+ * it's external configuration from your OIDC provider's app registration, supplied
  * as a required deploy-time input (see bin/app.ts), the same category as
  * oidcIssuer and oidcClientId. An earlier draft created this secret EMPTY
  * and asked users to populate it manually after deploy -- that was a real
@@ -73,7 +72,7 @@ export class SecretsStack extends cdk.Stack {
     // dynamic reference, so `cdk synth`'s output never contains the
     // plaintext secret.
     const oidcClientSecret = new secretsmanager.Secret(this, 'GatewayOidcClientSecret', {
-      description: 'Okta OIDC client secret for the Claude apps gateway, set to its real value at deploy time -- see docs/01-prerequisites.md and docs/02-deploy.md.',
+      description: 'OIDC client secret for the Claude apps gateway, set to its real value at deploy time -- see docs/01-prerequisites.md and docs/02-deploy.md.',
       secretStringValue: props.oidcClientSecretValue,
     });
 
@@ -107,7 +106,7 @@ export class SecretsStack extends cdk.Stack {
     // manually after the fact.
     new cdk.CfnOutput(this, 'OidcClientSecretArn', {
       value: oidcClientSecret.secretArn,
-      description: "ARN of the gateway's Okta OIDC client secret, set to its real value at deploy time.",
+      description: "ARN of the gateway's OIDC client secret, set to its real value at deploy time.",
     });
   }
 }

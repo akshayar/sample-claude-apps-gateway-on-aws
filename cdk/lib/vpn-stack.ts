@@ -16,14 +16,14 @@ export interface VpnStackProps extends cdk.StackProps {
 /**
  * A self-contained AWS Client VPN endpoint, so a stranger deploying this
  * repo has an actual way to reach the gateway's private-subnet endpoint
- * without any manual AWS console work beyond the Okta setup this repo
+ * without any manual AWS console work beyond the IdP setup this repo
  * already requires. Without this stack, "the gateway is private by
  * design" is only half a design -- there'd be no way to reach it at all,
  * which defeats the point of a self-contained sample that's supposed to
  * go from `git clone` + `cdk deploy` to a working, USABLE gateway.
  *
  * Uses mutual TLS authentication (not SAML/federated), since it needs no
- * additional Okta app registration beyond what the gateway itself already
+ * additional IdP app registration beyond what the gateway itself already
  * requires -- the whole CA/server/client certificate chain is generated
  * inside this stack's own Custom Resource (see
  * lib/lambda/vpn-cert-generator.ts), imported into ACM, and the resulting
@@ -35,12 +35,12 @@ export interface VpnStackProps extends cdk.StackProps {
  * Split-tunnel is enabled deliberately, not full-tunnel: a real gotcha
  * documented from this repo's own manual predecessor (see amend.md) is
  * that full-tunnel mode routes ALL traffic -- including the developer's
- * browser's redirect to Okta's public sign-in page -- through the VPN,
+ * browser's redirect to the IdP's public sign-in page -- through the VPN,
  * where only the VPC's own CIDR is authorized, silently breaking the
  * "This matches my device -- Continue" sign-in click with no visible
  * error. Split-tunnel routes only VPC-bound traffic through the tunnel,
  * leaving the rest of the developer's internet access (including the
- * Okta redirect) untouched.
+ * IdP redirect) untouched.
  */
 export class VpnStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: VpnStackProps) {
