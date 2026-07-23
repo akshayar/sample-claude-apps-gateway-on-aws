@@ -92,10 +92,30 @@ Any OIDC-compliant provider works. Create an OAuth application:
 | Private subnet IDs (comma-separated) | `privateSubnetIds` | `subnet-aaa,subnet-bbb` |
 | Private subnet AZs (comma-separated) | `privateSubnetAzs` | `us-east-1a,us-east-1b` |
 | VPC CIDR | `vpcCidr` | `10.0.0.0/16` |
-| OIDC issuer URL | `oidcIssuer` | `https://your-org.okta.com/oauth2/default` |
-| OIDC client ID | `oidcClientId` | `0oaXXXXXXXXXXX` |
+| OIDC issuer URL | `oidcIssuer` | `https://accounts.google.com` |
+| OIDC client ID | `oidcClientId` | `xxxx.apps.googleusercontent.com` |
 | OIDC client secret | `oidcClientSecret` | (from your IdP) |
-| Admin group name | `adminOktaGroupName` | `PlatformEngineering` |
+| Admin group name | `adminGroupName` | `claude-gateway-admins` |
+
+### How to look up your VPC values
+
+```bash
+# List VPCs — find yours by name/tag
+aws ec2 describe-vpcs --query "Vpcs[*].{VpcId:VpcId,CidrBlock:CidrBlock,Name:Tags[?Key=='Name'].Value|[0]}" --output table
+
+# Get VPC CIDR
+aws ec2 describe-vpcs --vpc-id <your-vpc-id> --query "Vpcs[0].CidrBlock" --output text
+
+# List private subnets (look for ones with NAT gateway route, no internet gateway)
+aws ec2 describe-subnets --filters "Name=vpc-id,Values=<your-vpc-id>" \
+  --query "Subnets[*].{SubnetId:SubnetId,AZ:AvailabilityZone,CidrBlock:CidrBlock,Name:Tags[?Key=='Name'].Value|[0]}" --output table
+
+# List public subnets (ones with internet gateway route)
+aws ec2 describe-route-tables --filters "Name=vpc-id,Values=<your-vpc-id>" \
+  --query "RouteTables[*].{SubnetAssociations:Associations[*].SubnetId,Routes:Routes[?GatewayId && starts_with(GatewayId,'igw-')]}" --output json
+```
+
+You need at least **2 private subnets** (for the gateway) and **2 public subnets** (for the admin console) in different availability zones.
 
 ---
 
@@ -145,7 +165,7 @@ npx cdk deploy --all --require-approval never \
   -c oidcIssuer=<your-issuer-url> \
   -c oidcClientId=<your-client-id> \
   -c oidcClientSecret="<your-client-secret>" \
-  -c adminOktaGroupName=<your-admin-group>
+  -c adminGroupName=<your-admin-group>
 ```
 
 This takes **25-35 minutes**. When complete, note the two URLs in the output:
@@ -281,7 +301,7 @@ npx cdk destroy --all \
   -c oidcIssuer=<issuer> \
   -c oidcClientId=<client-id> \
   -c oidcClientSecret=<secret> \
-  -c adminOktaGroupName=<group>
+  -c adminGroupName=<group>
 ```
 
 This removes ALL deployed resources. Aurora data is not recoverable after destruction.

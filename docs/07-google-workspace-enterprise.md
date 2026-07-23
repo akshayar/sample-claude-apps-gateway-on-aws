@@ -117,6 +117,22 @@ Fill in before deploying:
 
 The OIDC issuer is always `https://accounts.google.com` — pass it as `-c oidcIssuer=https://accounts.google.com`.
 
+### How to look up your VPC values
+
+```bash
+# List VPCs — find yours by name/tag
+aws ec2 describe-vpcs --query "Vpcs[*].{VpcId:VpcId,CidrBlock:CidrBlock,Name:Tags[?Key=='Name'].Value|[0]}" --output table
+
+# Get VPC CIDR
+aws ec2 describe-vpcs --vpc-id <your-vpc-id> --query "Vpcs[0].CidrBlock" --output text
+
+# List subnets in your VPC
+aws ec2 describe-subnets --filters "Name=vpc-id,Values=<your-vpc-id>" \
+  --query "Subnets[*].{SubnetId:SubnetId,AZ:AvailabilityZone,CidrBlock:CidrBlock,Name:Tags[?Key=='Name'].Value|[0]}" --output table
+```
+
+You need at least **2 private subnets** (for the gateway) and **2 public subnets** (for the admin console) in different availability zones. Private subnets must have a NAT Gateway for outbound internet access.
+
 ---
 
 ## Deploy
